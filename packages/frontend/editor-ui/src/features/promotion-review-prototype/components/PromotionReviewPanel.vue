@@ -129,7 +129,7 @@ const emit = defineEmits<{
 					<N8nOption
 						v-for="project in importableProjects"
 						:key="project.id"
-						:label="project.name"
+						:label="project.name ?? ''"
 						:value="project.id"
 					/>
 				</N8nSelect>

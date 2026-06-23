@@ -1,6 +1,9 @@
 import type {
+	PromotionMarkForDeploymentResult,
+	PromotionProducibleWorkflow,
 	PromotionReviewPlanResponse,
 	PromotionReviewSummary,
+	PromotionSourceConnection,
 	PromotionTargetCredential,
 } from '@n8n/api-types';
 import { defineStore } from 'pinia';
@@ -23,6 +26,12 @@ export const usePromotionReviewStore = defineStore('promotionReviewPrototype', (
 	const isLoading = ref(false);
 	const isPlanning = ref(false);
 	const planError = ref<string | null>(null);
+
+	const sourceConnections = ref<PromotionSourceConnection[]>([]);
+	const isSavingConnection = ref(false);
+
+	const producibleWorkflows = ref<PromotionProducibleWorkflow[]>([]);
+	const isMarkingForDeployment = ref(false);
 
 	const importableProjects = computed(() => {
 		const projects = [
@@ -161,6 +170,48 @@ export const usePromotionReviewStore = defineStore('promotionReviewPrototype', (
 		credentialBindings.value = {};
 	}
 
+	async function loadSourceConnections() {
+		sourceConnections.value = await promotionReviewApi.fetchSourceConnections(
+			rootStore.restApiContext,
+		);
+	}
+
+	async function addSourceConnection(input: { name: string; baseUrl: string; apiKey: string }) {
+		isSavingConnection.value = true;
+		try {
+			await promotionReviewApi.addSourceConnection(rootStore.restApiContext, input);
+			await loadSourceConnections();
+			await loadPending();
+		} finally {
+			isSavingConnection.value = false;
+		}
+	}
+
+	async function removeSourceConnection(id: string) {
+		await promotionReviewApi.deleteSourceConnection(rootStore.restApiContext, id);
+		await loadSourceConnections();
+		await loadPending();
+	}
+
+	async function loadProducibleWorkflows() {
+		producibleWorkflows.value = await promotionReviewApi.fetchProducibleWorkflows(
+			rootStore.restApiContext,
+		);
+	}
+
+	async function markForDeployment(input: {
+		workflowIds: string[];
+		targetEnv: string;
+		title?: string;
+	}): Promise<PromotionMarkForDeploymentResult> {
+		isMarkingForDeployment.value = true;
+		try {
+			return await promotionReviewApi.markForDeployment(rootStore.restApiContext, input);
+		} finally {
+			isMarkingForDeployment.value = false;
+		}
+	}
+
 	return {
 		pendingPromotions,
 		selectedPromotionId,
@@ -172,6 +223,10 @@ export const usePromotionReviewStore = defineStore('promotionReviewPrototype', (
 		isLoading,
 		isPlanning,
 		planError,
+		sourceConnections,
+		isSavingConnection,
+		producibleWorkflows,
+		isMarkingForDeployment,
 		loadProjects,
 		loadPending,
 		loadUsableCredentials,
@@ -182,5 +237,10 @@ export const usePromotionReviewStore = defineStore('promotionReviewPrototype', (
 		approveSelected,
 		rejectSelected,
 		clearSelection,
+		loadSourceConnections,
+		addSourceConnection,
+		removeSourceConnection,
+		loadProducibleWorkflows,
+		markForDeployment,
 	};
 });

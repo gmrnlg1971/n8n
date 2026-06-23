@@ -1,7 +1,10 @@
 import type {
+	PromotionMarkForDeploymentResult,
+	PromotionProducibleWorkflow,
 	PromotionReviewPlanRequestDto,
 	PromotionReviewPlanResponse,
 	PromotionReviewSummary,
+	PromotionSourceConnection,
 	PromotionTargetCredential,
 } from '@n8n/api-types';
 import { makeRestApiRequest } from '@n8n/rest-api-client';
@@ -63,5 +66,60 @@ export async function rejectPromotion(
 		context,
 		'POST',
 		`/promotion-review-prototype/${promotionId}/reject`,
+	);
+}
+
+export async function fetchProducibleWorkflows(
+	context: IRestApiContext,
+): Promise<PromotionProducibleWorkflow[]> {
+	return await makeRestApiRequest(
+		context,
+		'GET',
+		'/promotion-review-prototype/producing/workflows',
+	);
+}
+
+export async function markForDeployment(
+	context: IRestApiContext,
+	body: { workflowIds: string[]; targetEnv: string; title?: string },
+): Promise<PromotionMarkForDeploymentResult> {
+	return await makeRestApiRequest(
+		context,
+		'POST',
+		'/promotion-review-prototype/producing/deployables',
+		body,
+	);
+}
+
+export async function fetchSourceConnections(
+	context: IRestApiContext,
+): Promise<PromotionSourceConnection[]> {
+	return await makeRestApiRequest(
+		context,
+		'GET',
+		'/promotion-review-prototype/consuming/source-connections',
+	);
+}
+
+export async function addSourceConnection(
+	context: IRestApiContext,
+	body: { name: string; baseUrl: string; apiKey: string },
+): Promise<PromotionSourceConnection> {
+	return await makeRestApiRequest(
+		context,
+		'POST',
+		'/promotion-review-prototype/consuming/source-connections',
+		body,
+	);
+}
+
+export async function deleteSourceConnection(
+	context: IRestApiContext,
+	id: string,
+): Promise<{ success: boolean }> {
+	return await makeRestApiRequest(
+		context,
+		'DELETE',
+		`/promotion-review-prototype/consuming/source-connections/${id}`,
 	);
 }
