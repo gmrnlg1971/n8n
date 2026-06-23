@@ -48,6 +48,7 @@ provide(
 		askAi: false,
 		executionSuccessToasts: false,
 		executionErrorToasts: false,
+		expandGroups: true,
 	})),
 );
 
