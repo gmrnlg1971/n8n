@@ -3458,6 +3458,7 @@ export interface IWorkflowSettings {
 	credentialResolverId?: string;
 	redactionPolicy?: WorkflowSettings.RedactionPolicy;
 	customTelemetryTags?: ICustomTelemetryTag[];
+	priority?: 'default' | 'high';
 }
 
 export interface WorkflowFEMeta {
