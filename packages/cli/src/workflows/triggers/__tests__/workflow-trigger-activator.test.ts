@@ -292,14 +292,14 @@ describe('WorkflowTriggerActivator', () => {
 			new Set(['webhook-a', 'webhook-b']),
 		);
 
+		// Parallel fan-out: assert by membership, not order.
 		expect(outcome.activated).toEqual(['webhook-a']);
-		expect(outcome.failures).toEqual([
-			{
-				nodeId: 'webhook-b',
-				nodeName: 'Webhook B',
-				error: expect.objectContaining({ message: 'registration failed' }),
-			},
-		]);
+		expect(outcome.failures).toHaveLength(1);
+		expect(outcome.failures).toContainEqual({
+			nodeId: 'webhook-b',
+			nodeName: 'Webhook B',
+			error: expect.objectContaining({ message: 'registration failed' }),
+		});
 		// Webhook B is retried up to its budget (1 success for A + MAX_ATTEMPTS for B).
 		expect(webhookTriggerRegistrar.register).toHaveBeenCalledTimes(1 + MAX_ATTEMPTS);
 		// The surviving node's webhook is never torn down by the failing node.
@@ -413,9 +413,13 @@ describe('WorkflowTriggerActivator', () => {
 			new Set(['webhook-a', 'webhook-b']),
 		);
 
-		expect(outcome).toEqual({
-			activated: ['webhook-a'],
-			failures: [{ nodeId: 'webhook-b', nodeName: 'Webhook B', error: conflict }],
+		// Parallel fan-out: assert by membership, not order.
+		expect(outcome.activated).toEqual(['webhook-a']);
+		expect(outcome.failures).toHaveLength(1);
+		expect(outcome.failures).toContainEqual({
+			nodeId: 'webhook-b',
+			nodeName: 'Webhook B',
+			error: conflict,
 		});
 		// A deterministic conflict is recorded without retry (one call per node).
 		expect(webhookTriggerRegistrar.register).toHaveBeenCalledTimes(2);
